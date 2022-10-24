@@ -9,6 +9,7 @@ import (
 func routes() http.Handler {
 	multiPlexer := pat.New()
 	multiPlexer.Get("/", http.HandlerFunc(handlerSide.HomePage))
+	multiPlexer.Get("/ws", http.HandlerFunc(handlerSide.WebSocketEndpoint))
 
 	return multiPlexer
 }
