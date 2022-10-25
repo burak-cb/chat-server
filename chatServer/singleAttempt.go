@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"bufio"
 	"fmt"
@@ -16,6 +17,7 @@ func main() {
 	disconnectedConnections := make(chan net.Conn)
 
 	incomingMessages := make(chan string)
+
 
 	tcpServer, serverError := net.Listen("tcp", ":8080")
 	if serverError != nil {
@@ -78,3 +80,4 @@ func main() {
 	}
 
 }
+*/
