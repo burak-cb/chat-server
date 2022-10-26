@@ -52,6 +52,8 @@ func (chatRoom *ChatRoom) listenForMessages() {
 	go func() {
 		for {
 			select {
+			case incomingMessage := <-chatRoom.incomingMessages:
+				chatRoom.Broadcast(incomingMessage)
 			case joiningUser := <-chatRoom.newJoins:
 				chatRoom.mapOfUsers[joiningUser.userName] = joiningUser
 				chatRoom.Broadcast("\n" + joiningUser.userName + " has just joined the chat room.")
