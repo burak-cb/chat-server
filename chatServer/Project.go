@@ -48,6 +48,10 @@ func newChatUser(netConnection net.Conn) *ChatUser {
 	return newUser
 }
 
+func (chatRoom *ChatRoom) LogOut(disconnectedUser string) {
+	chatRoom.userDisconnects <- disconnectedUser
+}
+
 func (chatRoom *ChatRoom) listenForMessages() {
 	go func() {
 		for {
@@ -57,6 +61,12 @@ func (chatRoom *ChatRoom) listenForMessages() {
 			case joiningUser := <-chatRoom.newJoins:
 				chatRoom.mapOfUsers[joiningUser.userName] = joiningUser
 				chatRoom.Broadcast("\n" + joiningUser.userName + " has just joined the chat room.")
+			case disconnectedUser := <-chatRoom.userDisconnects:
+				if chatRoom.mapOfUsers[disconnectedUser] != nil {
+					chatRoom.mapOfUsers[disconnectedUser].Close()
+					delete(chatRoom.mapOfUsers, disconnectedUser)
+					chatRoom.Broadcast(disconnectedUser + " has disconnected from the server.")
+				}
 			}
 		}
 	}()
@@ -89,7 +99,17 @@ func (chatUser *ChatUser) WriteOutgoingMessages(chatRoom *ChatRoom) {
 func (chatUser *ChatUser) ReadIncomingMessages(chatRoom *ChatRoom) {
 	go func() {
 		for {
-			incomingLine, _ := chatUser.ReadLine()
+			incomingLine, messageReadError := chatUser.ReadLine()
+
+			if chatUser.isDisconnected {
+				break
+			}
+
+			if messageReadError != nil {
+				chatRoom.LogOut(chatUser.userName)
+				break
+			}
+
 			if incomingLine != "" {
 				chatRoom.incomingMessages <- chatUser.userName + ": " + incomingLine
 			}
