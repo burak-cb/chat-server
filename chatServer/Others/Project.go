@@ -1,6 +1,6 @@
-package main
+package Others
 
-import (
+/*import (
 	"bufio"
 	"log"
 	"net"
@@ -44,7 +44,6 @@ func newChatUser(netConnection net.Conn) *ChatUser {
 		ioWriter:         writer,
 		outgoingMessages: make(chan string),
 	}
-
 	return newUser
 }
 
@@ -60,7 +59,7 @@ func (chatRoom *ChatRoom) listenForMessages() {
 				chatRoom.Broadcast(incomingMessage)
 			case joiningUser := <-chatRoom.newJoins:
 				chatRoom.mapOfUsers[joiningUser.userName] = joiningUser
-				chatRoom.Broadcast("\n" + joiningUser.userName + " has just joined the chat room.")
+				chatRoom.Broadcast(joiningUser.userName + " has just joined the chat room.")
 			case disconnectedUser := <-chatRoom.userDisconnects:
 				if chatRoom.mapOfUsers[disconnectedUser] != nil {
 					chatRoom.mapOfUsers[disconnectedUser].Close()
@@ -142,7 +141,7 @@ func (chatUser *ChatUser) Login(chatRoom *ChatRoom) error {
 		return writeError
 	}
 
-	writeError = chatUser.WriteString("Please enter your name:")
+	writeError = chatUser.WriteString("Please enter your name: ")
 	if writeError != nil {
 		return writeError
 	}
@@ -155,7 +154,7 @@ func (chatUser *ChatUser) Login(chatRoom *ChatRoom) error {
 	}
 
 	log.Println("A New User Logged In:", chatUser.userName)
-	writeError = chatUser.WriteString("Welcome " + chatUser.userName + "!")
+	writeError = chatUser.WriteString("Welcome " + chatUser.userName + "!\n")
 	if writeError != nil {
 		return writeError
 	}
@@ -205,4 +204,4 @@ func main() {
 
 		go chatRoom.Join(incomingConnection) // Go routine ensures multiple connections even at the exact same moment.
 	}
-}
+}*/
