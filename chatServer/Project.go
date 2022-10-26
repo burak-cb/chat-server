@@ -48,12 +48,66 @@ func newChatUser(netConnection net.Conn) *ChatUser {
 	return newUser
 }
 
-func (chatRoom *ChatRoom) listenForMessages() {}
+func (chatRoom *ChatRoom) listenForMessages() {
+	go func() {
+		for {
+			select {
+			case joiningUser := <-chatRoom.newJoins:
+				chatRoom.mapOfUsers[joiningUser.userName] = joiningUser
+				chatRoom.Broadcast("\n" + joiningUser.userName + " has just joined the chat room.")
+			}
+		}
+	}()
+}
+
+func (chatRoom *ChatRoom) Broadcast(messageToBroadcast string) {
+	for _, eachUser := range chatRoom.mapOfUsers {
+		eachUser.SendMessage(messageToBroadcast)
+	}
+}
+
+func (chatUser *ChatUser) SendMessage(messageToSend string) {
+	chatUser.outgoingMessages <- messageToSend
+}
+
+func (chatUser *ChatUser) WriteOutgoingMessages(chatRoom *ChatRoom) {
+	go func() {
+		for {
+			messageData := <-chatUser.outgoingMessages
+			messageData = messageData + "\n"
+
+			writeError := chatUser.WriteString(messageData)
+			if writeError != nil {
+				log.Println("ERROR:", writeError)
+			}
+		}
+	}()
+}
+
+func (chatUser *ChatUser) ReadIncomingMessages(chatRoom *ChatRoom) {
+	go func() {
+		for {
+			incomingLine, _ := chatUser.ReadLine()
+			if incomingLine != "" {
+				chatRoom.incomingMessages <- chatUser.userName + ": " + incomingLine
+			}
+		}
+	}()
+}
+
 func (chatRoom *ChatRoom) Join(newUserConnection net.Conn) {
 	newUser := newChatUser(newUserConnection)
 
-	if newUser.Login(chatRoom) != nil {
+	if newUser.Login(chatRoom) == nil {
 		chatRoom.newJoins <- newUser
+	}
+}
+
+func (chatUser *ChatUser) Close() {
+	chatUser.isDisconnected = true
+	disconnectionError := chatUser.userConnection.Close()
+	if disconnectionError != nil {
+		return
 	}
 }
 
@@ -84,6 +138,8 @@ func (chatUser *ChatUser) Login(chatRoom *ChatRoom) error {
 		return writeError
 	}
 
+	chatUser.WriteOutgoingMessages(chatRoom)
+	chatUser.ReadIncomingMessages(chatRoom)
 	return nil
 }
 
@@ -99,8 +155,8 @@ func (chatUser *ChatUser) WriteString(messageToWrite string) error {
 
 func (chatUser *ChatUser) ReadLine() (string, error) {
 	inputBytes, _, inputError := chatUser.ioReader.ReadLine()
-
-	return string(inputBytes), inputError
+	inputString := string(inputBytes)
+	return inputString, inputError
 }
 
 // Function main creates the socket and bind to port 8080 and wait for incoming connections using the loop.
@@ -125,6 +181,6 @@ func main() {
 			log.Println("New Connection:", incomingConnection.RemoteAddr().String())
 		}
 
-		chatRoom.Join(incomingConnection)
+		go chatRoom.Join(incomingConnection) // Go routine ensures multiple connections even at the exact same moment.
 	}
 }
