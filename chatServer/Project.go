@@ -57,8 +57,50 @@ func (chatRoom *ChatRoom) Join(newUserConnection net.Conn) {
 	}
 }
 
-func (ChatUser *ChatUser) Login(chatRoom *ChatRoom) error {
+func (chatUser *ChatUser) Login(chatRoom *ChatRoom) error {
+	writeError := chatUser.WriteString("\nWelcome to the Couchbase Chat Server." +
+		"\nAll the messages are end-to-end unencrypted." +
+		"\nThe server is not sharing your private messages for commercial purposes, but only for I do not know how to...\n" +
+		"Otherwise, I would definitely sell it to LEGO.\n\n")
+	if writeError != nil {
+		return writeError
+	}
 
+	writeError = chatUser.WriteString("Please enter your name:")
+	if writeError != nil {
+		return writeError
+	}
+
+	var userNameError error
+	chatUser.userName, userNameError = chatUser.ReadLine()
+
+	if userNameError != nil {
+		return userNameError
+	}
+
+	log.Println("A New User Logged In:", chatUser.userName)
+	writeError = chatUser.WriteString("Welcome " + chatUser.userName + "!")
+	if writeError != nil {
+		return writeError
+	}
+
+	return nil
+}
+
+func (chatUser *ChatUser) WriteString(messageToWrite string) error {
+	_, writeError := chatUser.ioWriter.WriteString(messageToWrite)
+
+	if writeError != nil {
+		return writeError
+	}
+
+	return chatUser.ioWriter.Flush()
+}
+
+func (chatUser *ChatUser) ReadLine() (string, error) {
+	inputBytes, _, inputError := chatUser.ioReader.ReadLine()
+
+	return string(inputBytes), inputError
 }
 
 // Function main creates the socket and bind to port 8080 and wait for incoming connections using the loop.
