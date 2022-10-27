@@ -38,18 +38,13 @@ func (chatRoom *ChatRoom) MessageListener() {
 					go chatRoom.DNAStory(splitString[0])
 				} else if splitString[2] == "/whisper" {
 					if chatRoom.mapOfUsers[splitString[3]] != nil {
-						whisperError := chatRoom.mapOfUsers[splitString[3]].
+						chatRoom.mapOfUsers[splitString[3]].
 							WriteString(splitString[0] + " (Whispers) -> " +
 								strings.Join(splitString[4:], " ") + "\n")
-						if whisperError != nil {
-							log.Println("ERROR:", whisperError)
-						}
+
 					} else {
-						whisperError := chatRoom.mapOfUsers[splitString[0]].WriteString(splitString[3] +
+						chatRoom.mapOfUsers[splitString[0]].WriteString(splitString[3] +
 							" is not online.\n")
-						if whisperError != nil {
-							log.Println("ERROR:", whisperError)
-						}
 					}
 				} else {
 					chatRoom.BroadcastMessage(incomingMessage)

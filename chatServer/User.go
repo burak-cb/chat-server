@@ -58,27 +58,18 @@ func (chatUser *ChatUser) WriteOutgoingMessages() {
 			messageData := <-chatUser.outgoingMessages
 			messageData = messageData + "\n"
 
-			writeError := chatUser.WriteString(messageData)
-			if writeError != nil {
-				log.Println("ERROR:", writeError)
-			}
+			chatUser.WriteString(messageData)
 		}
 	}()
 }
 
 func (chatUser *ChatUser) Login(chatRoom *ChatRoom) error {
-	writeError := chatUser.WriteString("\nWelcome to the Couchbase Chat Server." +
+	chatUser.WriteString("\nWelcome to the Couchbase Chat Server." +
 		"\nAll the messages are end-to-end unencrypted." +
 		"\nThe server is not sharing your private messages for commercial purposes, but only for I do not know how to...\n" +
 		"Otherwise, I would definitely sell it to LEGO.\n\n")
-	if writeError != nil {
-		return writeError
-	}
 
-	writeError = chatUser.WriteString("Please enter your name: ")
-	if writeError != nil {
-		return writeError
-	}
+	chatUser.WriteString("Please enter your name: ")
 
 	var userNameError error
 	chatUser.userName, userNameError = chatUser.ReadLine()
@@ -90,7 +81,7 @@ func (chatUser *ChatUser) Login(chatRoom *ChatRoom) error {
 	serverPassword := "dontPanic!"
 
 	for e := 2; e >= 0; e-- {
-		writeError = chatUser.WriteString("Server Password: ")
+		chatUser.WriteString("Server Password: ")
 
 		passwordInput, passwordReadingError := chatUser.ReadLine()
 
@@ -101,33 +92,21 @@ func (chatUser *ChatUser) Login(chatRoom *ChatRoom) error {
 		if passwordInput == serverPassword {
 			break
 		} else if passwordInput != serverPassword {
-			passwordPromptError := chatUser.WriteString("The password is incorrect.\n")
-			if passwordPromptError != nil {
-				return passwordPromptError
-			}
+			chatUser.WriteString("The password is incorrect.\n")
 		}
 
 		if e == 0 {
-			passwordPromptError := chatUser.WriteString("Access is not granted.\n")
-			if passwordPromptError != nil {
-				return passwordPromptError
-			}
+			chatUser.WriteString("Access is not granted.\n")
 			chatUser.Close()
 		}
 
 		chatUser.WriteString("You have " + strconv.Itoa(e) + " more attempt.\n\n")
 	}
 
-	err := chatUser.WriteString("Access granted.\n\n")
-	if err != nil {
-		return err
-	}
+	chatUser.WriteString("Access granted.\n\n")
 
 	log.Println("A New User Logged In:", chatUser.userName)
-	writeError = chatUser.WriteString("Welcome " + chatUser.userName + "!\n")
-	if writeError != nil {
-		return writeError
-	}
+	chatUser.WriteString("Welcome " + chatUser.userName + "!\n")
 
 	chatUser.WriteOutgoingMessages()
 	chatUser.ReadIncomingMessages(chatRoom)
@@ -140,15 +119,19 @@ func (chatUser *ChatUser) ReadLine() (string, error) {
 	return inputString, inputError
 }
 
-func (chatUser *ChatUser) WriteString(messageToWrite string) error {
+func (chatUser *ChatUser) WriteString(messageToWrite string) {
 	// _, writeError := chatUser.ioWriter.WriteString("\0337\033[A\033[999D\033[S\033[L" + messageToWrite + "\0338")
 	_, writeError := chatUser.ioWriter.WriteString(messageToWrite)
 
 	if writeError != nil {
-		return writeError
+		chatUser.WriteString("The server has failed to send the message.")
+		log.Println("Message Write Error:", writeError)
 	}
 
-	return chatUser.ioWriter.Flush()
+	messageFlushError := chatUser.ioWriter.Flush()
+	if messageFlushError != nil {
+		log.Println("Message Flush Error:", writeError)
+	}
 }
 
 func (chatUser *ChatUser) SendMessage(messageToSend string) {
