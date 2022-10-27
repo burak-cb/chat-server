@@ -33,17 +33,20 @@ func (chatRoom *ChatRoom) MessageListener() {
 			case incomingMessage := <-chatRoom.incomingMessages:
 				splitString := strings.Split(incomingMessage, " ")
 				if splitString[2] == "/startStory" {
-					chatRoom.BroadcastMessage("Douglas Noel Adams is here to tell you an amazing story.\n")
+					chatRoom.BroadcastMessage("Douglas Noel Adams is here to tell you " +
+						"an amazing story.\n")
 					go chatRoom.DNAStory(splitString[0])
 				} else if splitString[2] == "/whisper" {
 					if chatRoom.mapOfUsers[splitString[3]] != nil {
 						whisperError := chatRoom.mapOfUsers[splitString[3]].
-							WriteString(splitString[0] + " (Whispers) -> " + strings.Join(splitString[4:], " "))
+							WriteString(splitString[0] + " (Whispers) -> " +
+								strings.Join(splitString[4:], " ") + "\n")
 						if whisperError != nil {
 							log.Println("ERROR:", whisperError)
 						}
 					} else {
-						whisperError := chatRoom.mapOfUsers[splitString[0]].WriteString(splitString[3] + " is not online.")
+						whisperError := chatRoom.mapOfUsers[splitString[0]].WriteString(splitString[3] +
+							" is not online.\n")
 						if whisperError != nil {
 							log.Println("ERROR:", whisperError)
 						}

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"log"
 	"net"
+	"strconv"
 )
 
 // ChatUser is a basic "constructor" for each user.
@@ -86,6 +87,42 @@ func (chatUser *ChatUser) Login(chatRoom *ChatRoom) error {
 		return userNameError
 	}
 
+	serverPassword := "dontPanic!"
+
+	for e := 2; e >= 0; e-- {
+		writeError = chatUser.WriteString("Server Password: ")
+
+		passwordInput, passwordReadingError := chatUser.ReadLine()
+
+		if passwordReadingError != nil {
+			return passwordReadingError
+		}
+
+		if passwordInput == serverPassword {
+			break
+		} else if passwordInput != serverPassword {
+			passwordPromptError := chatUser.WriteString("The password is incorrect.\n")
+			if passwordPromptError != nil {
+				return passwordPromptError
+			}
+		}
+
+		if e == 0 {
+			passwordPromptError := chatUser.WriteString("Access is not granted.\n")
+			if passwordPromptError != nil {
+				return passwordPromptError
+			}
+			chatUser.Close()
+		}
+
+		chatUser.WriteString("You have " + strconv.Itoa(e) + " more attempt.\n\n")
+	}
+
+	err := chatUser.WriteString("Access granted.\n\n")
+	if err != nil {
+		return err
+	}
+
 	log.Println("A New User Logged In:", chatUser.userName)
 	writeError = chatUser.WriteString("Welcome " + chatUser.userName + "!\n")
 	if writeError != nil {
@@ -104,6 +141,7 @@ func (chatUser *ChatUser) ReadLine() (string, error) {
 }
 
 func (chatUser *ChatUser) WriteString(messageToWrite string) error {
+	// _, writeError := chatUser.ioWriter.WriteString("\0337\033[A\033[999D\033[S\033[L" + messageToWrite + "\0338")
 	_, writeError := chatUser.ioWriter.WriteString(messageToWrite)
 
 	if writeError != nil {
@@ -123,4 +161,6 @@ func (chatUser *ChatUser) Close() {
 	if disconnectionError != nil {
 		return
 	}
+
+	log.Println(chatUser.userName, "has disconnected.")
 }
