@@ -67,6 +67,7 @@ func (chatRoom *ChatRoom) MessageListener() {
 }
 
 func (chatRoom *ChatRoom) DNAStory(askingUser string) {
+	// The document is not in the repository. EXPECT ERROR or add the document.
 	inputFile, fileOpeningError := os.Open("hitchhikersGuide.txt")
 
 	if fileOpeningError != nil {
