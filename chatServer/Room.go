@@ -41,7 +41,6 @@ func (chatRoom *ChatRoom) MessageListener() {
 						chatRoom.mapOfUsers[splitString[3]].
 							WriteString(splitString[0] + " (Whispers) -> " +
 								strings.Join(splitString[4:], " ") + "\n")
-
 					} else {
 						chatRoom.mapOfUsers[splitString[0]].WriteString(splitString[3] +
 							" is not online.\n")
