@@ -8,16 +8,13 @@ import (
 
 var chatRoom ChatRoom
 var chatUser ChatUser
-var testChannel chan string
 
 func init() {
 	go StartServer()
-	time.Sleep(time.Second) // Putting into the sleep works.
-	// testChannel <- "Server is UP, starting \"TestTCPServerRunning\" test." // It it a better practice.
+	time.Sleep(time.Second)
 }
 
 func TestTCPServerRunning(t *testing.T) {
-	// fmt.Println(<-testChannel)
 	type serverStruct struct {
 		serverProtocol string
 		portAddress    string
