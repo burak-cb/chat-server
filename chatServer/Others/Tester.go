@@ -1,62 +1,25 @@
 package Others
 
-/*import (
-	"fmt"
-	"log"
-	"net"
-)
+/*func main() {
+	// Reading a File.
 
-const portNumber string = "localhost:8080"
+	inputFile, fileOpeningError := os.Open("hitchhikersGuide.txt")
 
-func main() {
-	connectionListener, connectionError := net.Listen("tcp", portNumber)
-
-	// ---------------------------------------------
-	if connectionError != nil {
-		fmt.Println("Problem!")
+	if fileOpeningError != nil {
+		log.Fatalln("ERROR:", fileOpeningError)
 	}
-	// ---------------------------------------------
 
-	hostAddress, portNumber, _ := net.SplitHostPort(connectionListener.Addr().String())
+	defer func(inputFile *os.File) {
+		fileClosureError := inputFile.Close()
+		if fileClosureError != nil {
 
-	defer func(connectionListener net.Listener) {
-		closureError := connectionListener.Close()
-		if closureError != nil {
-			fmt.Println("Error CLosing the Connection.")
 		}
-	}(connectionListener)
+	}(inputFile)
 
-	log.Printf("Listening on Host: %s - Port: %s\n", hostAddress, portNumber)
+	fileScanner := bufio.NewScanner(inputFile)
 
-	// ----------------------------------------------------------------------------------------------------------------
-	for {
-		// Listening for incoming connections.
-		incomingConnection, newConnectionError := connectionListener.Accept()
-
-		// ---------------------------------------------
-
-		if newConnectionError != nil {
-			panic(newConnectionError)
-		}
-		// ---------------------------------------------
-
-		// Handle each new connection on a separate go routine.
-		go func(eachConnection net.Conn) {
-			messageBuffer := make([]byte, 1024)
-			messageLength, messageError := incomingConnection.Read(messageBuffer)
-
-			// ---------------------------------------------
-			if messageError != nil {
-				fmt.Printf("Error Reading: %#v\n", messageError)
-				return
-			}
-			// ---------------------------------------------
-
-			fmt.Printf("Message Received: %s\n", string(messageBuffer[:messageLength]))
-
-			incomingConnection.Write([]byte("Message Received.\n"))
-			incomingConnection.Close()
-		}(incomingConnection)
-		// ----------------------------------------------------------------------------------------------------------------
+	for fileScanner.Scan() {
+		fmt.Println(fileScanner.Text())
+		time.Sleep(time.Second)
 	}
 }*/

@@ -45,7 +45,7 @@ func (chatUser *ChatUser) ReadIncomingMessages(chatRoom *ChatRoom) {
 			}
 
 			if incomingLine != "" {
-				chatRoom.incomingMessages <- chatUser.userName + ": " + incomingLine
+				chatRoom.incomingMessages <- chatUser.userName + " -> " + incomingLine
 			}
 		}
 	}()

@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"log"
 	"net"
+	"os"
+	"strings"
+	"time"
 )
 
 type ChatRoom struct { // Main room of the server.
@@ -27,7 +31,27 @@ func (chatRoom *ChatRoom) MessageListener() {
 		for {
 			select {
 			case incomingMessage := <-chatRoom.incomingMessages:
-				chatRoom.BroadcastMessage(incomingMessage)
+				splitString := strings.Split(incomingMessage, " ")
+				if splitString[2] == "/startStory" {
+					chatRoom.BroadcastMessage("Douglas Noel Adams is here to tell you an amazing story.\n")
+					go chatRoom.DNAStory(splitString[0])
+				} else if splitString[2] == "/whisper" {
+					if chatRoom.mapOfUsers[splitString[3]] != nil {
+						whisperError := chatRoom.mapOfUsers[splitString[3]].
+							WriteString(splitString[0] + " (Whispers) -> " + strings.Join(splitString[4:], " "))
+						if whisperError != nil {
+							log.Println("ERROR:", whisperError)
+						}
+					} else {
+						whisperError := chatRoom.mapOfUsers[splitString[0]].WriteString(splitString[3] + " is not online.")
+						if whisperError != nil {
+							log.Println("ERROR:", whisperError)
+						}
+					}
+				} else {
+					chatRoom.BroadcastMessage(incomingMessage)
+				}
+
 			case joiningUser := <-chatRoom.newJoins:
 				chatRoom.mapOfUsers[joiningUser.userName] = joiningUser
 				chatRoom.BroadcastMessage(joiningUser.userName + " has just joined the chat room.")
@@ -40,6 +64,30 @@ func (chatRoom *ChatRoom) MessageListener() {
 			}
 		}
 	}()
+}
+
+func (chatRoom *ChatRoom) DNAStory(askingUser string) {
+	inputFile, fileOpeningError := os.Open("hitchhikersGuide.txt")
+
+	if fileOpeningError != nil {
+		log.Fatalln("ERROR:", fileOpeningError)
+	}
+
+	defer func(inputFile *os.File) {
+		fileClosureError := inputFile.Close()
+		if fileClosureError != nil {
+
+		}
+	}(inputFile)
+
+	fileScanner := bufio.NewScanner(inputFile)
+
+	for fileScanner.Scan() && chatRoom.mapOfUsers[askingUser] != nil {
+		chatRoom.BroadcastMessage(fileScanner.Text())
+		time.Sleep(time.Second)
+	}
+
+	chatRoom.BroadcastMessage("\nDNA is stopping because " + askingUser + " has left the server.\n")
 }
 
 func (chatRoom *ChatRoom) LogOut(disconnectedUser string) {
